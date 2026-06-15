@@ -1,1 +1,399 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rotina do Heitor V3</title>
+<meta name="theme-color" content="#1d4ed8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg,#dbeafe,#ede9fe); min-height:100vh; padding-bottom:30px; }
+  header { background: linear-gradient(135deg,#1d4ed8,#7c3aed); color:#fff; padding:18px 20px 14px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,.2); position:sticky; top:0; z-index:100; }
+  header h1 { font-size:22px; font-weight:700; }
+  header p { font-size:12px; opacity:.85; margin-top:3px; }
+  .data-bar { background:#fff; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#555; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; gap:6px; }
+  .data-bar span { font-weight:600; color:#1d4ed8; }
+  .sync-status { font-size:11px; padding:3px 8px; border-radius:99px; background:#dcfce7; color:#166534; font-weight:600; }
+  .container { padding:14px; max-width:480px; margin:0 auto; }
+  .block { background:#fff; border-radius:16px; margin-bottom:14px; box-shadow:0 2px 10px rgba(0,0,0,.08); overflow:hidden; }
+  .block-header { padding:12px 16px; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; }
+  .block-header .hora { font-size:20px; font-weight:800; }
+  .block-header .badge { margin-left:auto; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:600; }
+  .badge.ok { background:#dcfce7; color:#166534; }
+  .badge.pend { background:#fef3c7; color:#92400e; }
+  .b-manha .block-header { background:linear-gradient(90deg,#fef9c3,#fef3c7); color:#78350f; }
+  .b-escola .block-header { background:linear-gradient(90deg,#fee2e2,#fecaca); color:#991b1b; }
+  .b-tarde .block-header { background:linear-gradient(90deg,#dbeafe,#bfdbfe); color:#1e3a8a; }
+  .b-noite .block-header { background:linear-gradient(90deg,#ede9fe,#ddd6fe); color:#4c1d95; }
+  .item { display:flex; align-items:center; padding:12px 16px; border-top:1px solid #f3f4f6; gap:12px; }
+  .item.done { background:#f0fdf4; }
+  .item-info { flex:1; }
+  .item-name { font-size:15px; font-weight:600; color:#111827; display:flex; align-items:center; gap:6px; }
+  .item.done .item-name { text-decoration:line-through; color:#9ca3af; }
+  .item-sub { font-size:11px; color:#6b7280; margin-top:2px; }
+  .item-done-info { font-size:10px; color:#16a34a; margin-top:3px; font-weight:600; }
+  .tag-ajuste { background:#fef08a; color:#854d0e; font-size:10px; padding:2px 6px; border-radius:4px; text-decoration:none !important; display:inline-block; }
+  .check-btn { width:46px; height:46px; border-radius:50%; border:2.5px solid #d1d5db; background:#fff; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#9ca3af; }
+  .check-btn.checked { background:#22c55e; border-color:#22c55e; color:#fff; }
+  .escola-aviso { padding:14px 16px; text-align:center; font-size:13px; color:#991b1b; font-weight:600; }
+  .koide-info { background:#fffbeb; border-left:4px solid #f59e0b; margin:10px 16px 4px; padding:10px 12px; border-radius:0 8px 8px 0; font-size:12px; color:#78350f; }
+  .koide-info strong { display:block; margin-bottom:3px; }
+  .reset-bar { text-align:center; margin:10px 0 4px; }
+  .btn-reset { background:#f3f4f6; border:1px solid #d1d5db; color:#374151; padding:10px 24px; border-radius:99px; font-size:13px; cursor:pointer; font-weight:600; }
+  .footer-info { text-align:center; font-size:11px; color:#9ca3af; margin-top:6px; padding:0 16px; line-height:1.5; }
+
+  /* Modais */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px); }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#fff; border-radius:20px; padding:24px; width:100%; max-width:340px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,.2); }
+  .modal h3 { font-size:18px; margin-bottom:8px; color:#111827; }
+  .modal p { font-size:13px; color:#4b5563; margin-bottom:18px; line-height:1.4; }
+  .modal-btns { display:flex; flex-direction:column; gap:10px; }
+  .modal-btns button { padding:14px; border-radius:12px; border:none; font-size:15px; font-weight:700; cursor:pointer; transition:transform 0.1s; }
+  .modal-btns button:active { transform:scale(0.97); }
+  .btn-pai { background:#1d4ed8; color:#fff; }
+  .btn-mae { background:#db2777; color:#fff; }
+  .btn-cancel { background:#f3f4f6; color:#374151; }
+  .btn-smart { background:#f59e0b; color:#fff; }
+</style>
+</head>
+<body>
+
+<!-- Modal Quem Administrou -->
+<div class="modal-overlay" id="modalQuem">
+  <div class="modal">
+    <h3>Quem administrou?</h3>
+    <p id="modalRemedio">Remédio</p>
+    <div class="modal-btns">
+      <button type="button" class="btn-pai" onclick="confirmarAdm('pai', event)">👨 Pai (Junior)</button>
+      <button type="button" class="btn-mae" onclick="confirmarAdm('mae', event)">👩 Mãe</button>
+      <button type="button" class="btn-cancel" onclick="fecharModal('modalQuem', event)">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajuste Inteligente (V3) -->
+<div class="modal-overlay" id="modalAjuste">
+  <div class="modal">
+    <h3>⚠️ Ajuste Inteligente</h3>
+    <p id="textoAjuste">O remédio atrasou. Deseja ajustar a dose de amanhã?</p>
+    <div class="modal-btns">
+      <button type="button" class="btn-smart" onclick="aceitarAjuste(event)">✅ Aceitar Sugestão</button>
+      <button type="button" class="btn-cancel" onclick="recusarAjuste(event)">↩️ Manter Original</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>💊 Rotina do Heitor <span style="font-size:12px; background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0 Smart</span></h1>
+  <p>8 anos · Dr. Thiago &amp; Dra. Lucilene</p>
+</header>
+
+<div class="data-bar">
+  <div>📅 <span id="dataHoje"></span></div>
+  <div id="syncStatus" class="sync-status">📱 Salvo neste celular</div>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+// ===== CONFIGURAÇÕES =====
+var STORAGE_KEY = 'heitor_rotina_v3';
+var AJUSTES_KEY = 'heitor_ajustes_v3';
+var SCRIPT_URL = 'SEU_SCRIPT_ID_AQUI'; // Para o Google Sheets futuro
+
+var itemAtual = null;
+var nomeAtual = '';
+var horaPrevistaAtual = '';
+var ajustePendente = null; // Guarda os dados do ajuste sugerido
+
+// Definição base dos remédios
+var ROTINA_BASE = [
+  { grupo:'manha', classe:'b-manha', emoji:'🌅', hora:'09:00', titulo:'Manhã',
+    koide:'⚠️ Koide D — Esquema de redução: Dias 1-2: 3x/dia · Dias 3-5: 2x/dia · Dia 6+: 1x e parar',
+    itens:[
+      {id:'predsim', nome:'Predsim', sub:'13 ml · Prednisolona · por 5 dias', recalculavel:true, limite:60},
+      {id:'alektos', nome:'Alektos Ped', sub:'4 ml · Bilastina · por 10 dias', recalculavel:true, limite:90},
+      {id:'koide-manha', nome:'Koide D', sub:'7,5 ml · Corticoide', recalculavel:false},
+      {id:'inal-manha', nome:'Inalação', sub:'SF 0,9% 3ml + Clenil · 1ª do dia', recalculavel:false},
+      {id:'rino-manha', nome:'Rinosoro', sub:'Lavar nariz · 1ª lavagem', recalculavel:false}
+    ]},
+  { grupo:'escola', classe:'b-tarde', emoji:'🎒', hora:'12:00', titulo:'Antes da escola',
+    itens:[
+      {id:'brond-manha', nome:'Brondilat XPE', sub:'7,5 ml · a cada 12h · por 5 dias', recalculavel:false},
+      {id:'koide-meio', nome:'Koide D (só dias 1 e 2)', sub:'7,5 ml · apenas 2 primeiros dias', recalculavel:false}
+    ]},
+  { grupo:'aviso', classe:'b-escola', emoji:'⛔', hora:'13h-18h', titulo:'Na escola', aviso:true },
+  { grupo:'tarde', classe:'b-tarde', emoji:'🌆', hora:'18:30', titulo:'Chegou da escola',
+    itens:[
+      {id:'koide-tarde', nome:'Koide D', sub:'7,5 ml · conforme esquema', recalculavel:false},
+      {id:'inal-tarde', nome:'Inalação', sub:'SF 0,9% 3ml + Clenil · 2ª do dia', recalculavel:false}
+    ]},
+  { grupo:'noite', classe:'b-noite', emoji:'🌙', hora:'21:30', titulo:'Antes de dormir',
+    itens:[
+      {id:'brond-noite', nome:'Brondilat XPE', sub:'7,5 ml · 2ª dose (12h depois)', recalculavel:false},
+      {id:'rino-noite', nome:'Rinosoro', sub:'Lavar nariz · última lavagem', recalculavel:false},
+      {id:'avamys', nome:'Avamys (após lavar o nariz)', sub:'1 jato cada narina · por 60 dias', recalculavel:false}
+    ]}
+];
+
+// ===== FUNÇÕES DE TEMPO =====
+function dataHoje(){ return new Date().toLocaleDateString('pt-BR'); }
+function dataKey(offsetDias){ 
+  var d = new Date(); 
+  if(offsetDias) d.setDate(d.getDate() + offsetDias);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); 
+}
+function horaAtual(){ 
+  var d = new Date(); 
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); 
+}
+
+// ===== ESTADO E AJUSTES =====
+function getEstado(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')[dataKey()] || {}; } 
+  catch(e){ return {}; }
+}
+function salvarEstado(estado){
+  try {
+    var all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    all[dataKey()] = estado;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch(e){}
+}
+function getAjustes(){
+  try { return JSON.parse(localStorage.getItem(AJUSTES_KEY) || '{}'); } 
+  catch(e){ return {}; }
+}
+function salvarAjuste(data, idRemedio, novaHora){
+  try {
+    var all = getAjustes();
+    if(!all[data]) all[data] = {};
+    all[data][idRemedio] = novaHora;
+    localStorage.setItem(AJUSTES_KEY, JSON.stringify(all));
+  } catch(e){}
+}
+
+// ===== MOTOR INTELIGENTE (V3) =====
+function calcularAtrasoMinutos(horaPrevista, horaReal) {
+  var p = horaPrevista.split(':');
+  var r = horaReal.split(':');
+  var minP = parseInt(p[0])*60 + parseInt(p[1]);
+  var minR = parseInt(r[0])*60 + parseInt(r[1]);
+  return minR - minP;
+}
+
+function calcularNovaSugestao(horaReal, atraso) {
+  var r = horaReal.split(':');
+  var h = parseInt(r[0]);
+  var m = parseInt(r[1]);
+
+  // Retorno gradual: se atrasou mais de 2h, sugere 1h mais cedo para ir voltando ao normal
+  if (atraso > 120) {
+    h -= 1;
+    if (h < 0) h += 24;
+  }
+
+  // Regra 1: Bloqueio Escola (13h às 18h) -> Joga para 18:30
+  if (h >= 13 && h < 18) { h = 18; m = 30; }
+
+  // Regra 2: Bloqueio Madrugada (22h às 08h) -> Joga para 09:00
+  if (h >= 22 || h < 8) { h = 9; m = 0; }
+
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+// ===== RENDERIZAÇÃO =====
+function render(){
+  document.getElementById('dataHoje').textContent = dataHoje();
+  var estado = getEstado();
+  var ajustesHoje = getAjustes()[dataKey()] || {};
+  var app = document.getElementById('app');
+  app.innerHTML = '';
+
+  ROTINA_BASE.forEach(function(bloco){
+    var div = document.createElement('div');
+    div.className = 'block ' + bloco.classe;
+    var html = '<div class="block-header"><span>'+bloco.emoji+'</span><span class="hora">'+bloco.hora+'</span><span>'+bloco.titulo+'</span>';
+
+    if(bloco.itens){
+      var feitos = bloco.itens.filter(function(it){ return estado[it.id]; }).length;
+      var total = bloco.itens.length;
+      var cls = feitos===total ? 'ok' : 'pend';
+      var txt = feitos===total ? '✅ Completo' : feitos+'/'+total;
+      html += '<span class="badge '+cls+'">'+txt+'</span>';
+    }
+    html += '</div>';
+
+    if(bloco.aviso) html += '<div class="escola-aviso">🚫 Nenhum medicamento nesse período</div>';
+    if(bloco.koide) html += '<div class="koide-info"><strong>'+bloco.koide.split(':')[0]+':</strong>'+bloco.koide.substring(bloco.koide.indexOf(':')+1)+'</div>';
+
+    if(bloco.itens){
+      bloco.itens.forEach(function(it){
+        var dado = estado[it.id];
+        var doneCls = dado ? ' done' : '';
+        var btnCls = dado ? 'check-btn checked' : 'check-btn';
+        var btnTxt = dado ? '✓' : '○';
+        var doneInfo = dado ? '<div class="item-done-info">✅ '+dado.quem+' às '+dado.hora+'</div>' : '';
+
+        // Verifica se tem ajuste inteligente para hoje
+        var horaExibicao = bloco.hora;
+        var tagAjuste = '';
+        if (ajustesHoje[it.id]) {
+          horaExibicao = ajustesHoje[it.id];
+          tagAjuste = '<span class="tag-ajuste">⏰ Ajustado para '+horaExibicao+'</span>';
+        }
+
+        html += '<div class="item'+doneCls+'">'+
+          '<div class="item-info">'+
+            '<div class="item-name">'+it.nome+' '+tagAjuste+'</div>'+
+            '<div class="item-sub">'+it.sub+'</div>'+doneInfo+
+          '</div>'+
+          '<button type="button" class="'+btnCls+'" onclick="abrirModal(\''+it.id+'\',\''+it.nome.replace(/'/g,"\\'")+'\',\''+horaExibicao+'\', event)">'+btnTxt+'</button>'+
+          '</div>';
+      });
+    }
+    div.innerHTML = html;
+    app.appendChild(div);
+  });
+}
+
+// ===== CONTROLE DE MODAIS =====
+function abrirModal(id, nome, horaPrevista, ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  var estado = getEstado();
+  if(estado[id]){
+    if(confirm('Desmarcar "'+nome+'"?')){
+      delete estado[id];
+      salvarEstado(estado);
+      render();
+    }
+    return false;
+  }
+  itemAtual = id;
+  nomeAtual = nome;
+  horaPrevistaAtual = horaPrevista;
+  document.getElementById('modalRemedio').textContent = '💊 ' + nome;
+  document.getElementById('modalQuem').classList.add('show');
+  return false;
+}
+
+function fecharModal(idModal, ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  document.getElementById(idModal).classList.remove('show');
+  return false;
+}
+
+function confirmarAdm(quem, ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  if(!itemAtual) return false;
+
+  var idMarcado = itemAtual;
+  var nomeMarcado = nomeAtual;
+  var horaPrevista = horaPrevistaAtual;
+  var horaReal = horaAtual();
+
+  fecharModal('modalQuem');
+
+  // Salva o estado
+  var estado = getEstado();
+  estado[idMarcado] = {
+    quem: quem === 'pai' ? 'Pai 👨' : 'Mãe 👩',
+    hora: horaReal,
+    remedio: nomeMarcado
+  };
+  salvarEstado(estado);
+
+  // Busca regras do remédio
+  var remedioConfig = null;
+  ROTINA_BASE.forEach(b => { if(b.itens) b.itens.forEach(i => { if(i.id === idMarcado) remedioConfig = i; }) });
+
+  // Verifica se precisa de Ajuste Inteligente
+  if (remedioConfig && remedioConfig.recalculavel) {
+    var atraso = calcularAtrasoMinutos(horaPrevista, horaReal);
+    if (atraso > remedioConfig.limite) {
+      var novaHora = calcularNovaSugestao(horaReal, atraso);
+      ajustePendente = { id: idMarcado, nome: nomeMarcado, novaHora: novaHora, dataAmanha: dataKey(1) };
+
+      document.getElementById('textoAjuste').innerHTML = 
+        'O <b>'+nomeMarcado+'</b> atrasou '+(Math.floor(atraso/60))+'h'+(atraso%60)+'m.<br><br>'+
+        'Para manter o ciclo seguro, deseja ajustar a dose de <b>amanhã</b> para as <b>'+novaHora+'</b>?';
+
+      document.getElementById('modalAjuste').classList.add('show');
+
+      itemAtual = null;
+      return false;
+    }
+  }
+
+  itemAtual = null;
+  render();
+  sincronizarSheets(estado);
+  return false;
+}
+
+function aceitarAjuste(ev) {
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  if(ajustePendente) {
+    salvarAjuste(ajustePendente.dataAmanha, ajustePendente.id, ajustePendente.novaHora);
+    alert('✅ Ajuste salvo para amanhã!');
+  }
+  fecharModal('modalAjuste');
+  ajustePendente = null;
+  render();
+  sincronizarSheets(getEstado());
+}
+
+function recusarAjuste(ev) {
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  fecharModal('modalAjuste');
+  ajustePendente = null;
+  render();
+  sincronizarSheets(getEstado());
+}
+
+function confirmarReset(){
+  if(confirm('Reiniciar todos os medicamentos de hoje?')){
+    try {
+      var all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      delete all[dataKey()];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    } catch(e){}
+    render();
+  }
+}
+
+// ===== GOOGLE SHEETS (PREPARADO) =====
+function sincronizarSheets(estado) {
+  var syncEl = document.getElementById('syncStatus');
+  if (!syncEl) return;
+  if (!SCRIPT_URL || SCRIPT_URL.includes('SEU_SCRIPT_ID_AQUI')) {
+    syncEl.textContent = '📱 Salvo neste celular';
+    return;
+  }
+  syncEl.textContent = '⏳ Salvando...';
+
+  var linhas = Object.keys(estado).map(function(id) {
+    return { data: dataKey(), remedio: estado[id].remedio, horario: estado[id].hora, quem: estado[id].quem };
+  });
+
+  fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: dataKey(), itens: linhas })
+  }).then(function() {
+    syncEl.textContent = '✅ Sincronizado online';
+  }).catch(function() {
+    syncEl.textContent = '📱 Salvo local';
+  });
+}
+
+// Inicializa
+render();
+
+var footer = document.createElement('div');
+footer.innerHTML = '<div class="reset-bar"><button type="button" class="btn-reset" onclick="confirmarReset()">🔄 Reiniciar dia</button></div>'+
+  '<div class="footer-info">Salvo neste celular · 😴 Dorme 22h · ⏰ Acorda 09h<br>💡 Toque no círculo para marcar quem deu o remédio</div>';
+document.getElementById('app').appendChild(footer);
+</script>
+</body>
+</html>
