@@ -41,7 +41,7 @@
   .reset-bar { text-align:center; margin:10px 0 4px; }
   .btn-reset { background:#f3f4f6; border:1px solid #d1d5db; color:#374151; padding:10px 24px; border-radius:99px; font-size:13px; cursor:pointer; font-weight:600; }
   .footer-info { text-align:center; font-size:11px; color:#9ca3af; margin-top:6px; padding:0 16px; line-height:1.5; }
-
+  
   /* Modais */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px); }
   .modal-overlay.show { display:flex; }
@@ -86,7 +86,7 @@
 
 <header>
   <h1>💊 Rotina do Heitor <span style="font-size:12px; background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0 Smart</span></h1>
-  <p>8 anos · Dr. Thiago &amp; Dra. Lucilene</p>
+  <p>8 anos · Dr. Thiago & Dra. Lucilene</p>
 </header>
 
 <div class="data-bar">
@@ -100,12 +100,14 @@
 // ===== CONFIGURAÇÕES =====
 var STORAGE_KEY = 'heitor_rotina_v3';
 var AJUSTES_KEY = 'heitor_ajustes_v3';
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYXX6abjXVojIbwFe78fEWCUtp7K4cIdUxmOC-83GkB9AU7ZGkYhHQHamu21CKFKgHNg/exec'; // Para o Google Sheets futuro
+
+// SUA URL EXATA AQUI:
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx33ZZyvOSpqkHW8jXqwv8Vp-9uee0ShdG25F6IrCHdVCk40hCkk8X2d7DjpCNArTiCWA/exec';
 
 var itemAtual = null;
 var nomeAtual = '';
 var horaPrevistaAtual = '';
-var ajustePendente = null; // Guarda os dados do ajuste sugerido
+var ajustePendente = null;
 
 // Definição base dos remédios
 var ROTINA_BASE = [
@@ -188,16 +190,12 @@ function calcularNovaSugestao(horaReal, atraso) {
   var h = parseInt(r[0]);
   var m = parseInt(r[1]);
 
-  // Retorno gradual: se atrasou mais de 2h, sugere 1h mais cedo para ir voltando ao normal
   if (atraso > 120) {
     h -= 1;
     if (h < 0) h += 24;
   }
 
-  // Regra 1: Bloqueio Escola (13h às 18h) -> Joga para 18:30
   if (h >= 13 && h < 18) { h = 18; m = 30; }
-
-  // Regra 2: Bloqueio Madrugada (22h às 08h) -> Joga para 09:00
   if (h >= 22 || h < 8) { h = 9; m = 0; }
 
   return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
@@ -215,7 +213,7 @@ function render(){
     var div = document.createElement('div');
     div.className = 'block ' + bloco.classe;
     var html = '<div class="block-header"><span>'+bloco.emoji+'</span><span class="hora">'+bloco.hora+'</span><span>'+bloco.titulo+'</span>';
-
+    
     if(bloco.itens){
       var feitos = bloco.itens.filter(function(it){ return estado[it.id]; }).length;
       var total = bloco.itens.length;
@@ -224,10 +222,10 @@ function render(){
       html += '<span class="badge '+cls+'">'+txt+'</span>';
     }
     html += '</div>';
-
+    
     if(bloco.aviso) html += '<div class="escola-aviso">🚫 Nenhum medicamento nesse período</div>';
     if(bloco.koide) html += '<div class="koide-info"><strong>'+bloco.koide.split(':')[0]+':</strong>'+bloco.koide.substring(bloco.koide.indexOf(':')+1)+'</div>';
-
+    
     if(bloco.itens){
       bloco.itens.forEach(function(it){
         var dado = estado[it.id];
@@ -235,8 +233,7 @@ function render(){
         var btnCls = dado ? 'check-btn checked' : 'check-btn';
         var btnTxt = dado ? '✓' : '○';
         var doneInfo = dado ? '<div class="item-done-info">✅ '+dado.quem+' às '+dado.hora+'</div>' : '';
-
-        // Verifica se tem ajuste inteligente para hoje
+        
         var horaExibicao = bloco.hora;
         var tagAjuste = '';
         if (ajustesHoje[it.id]) {
@@ -287,15 +284,14 @@ function fecharModal(idModal, ev){
 function confirmarAdm(quem, ev){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
   if(!itemAtual) return false;
-
+  
   var idMarcado = itemAtual;
   var nomeMarcado = nomeAtual;
   var horaPrevista = horaPrevistaAtual;
   var horaReal = horaAtual();
-
+  
   fecharModal('modalQuem');
-
-  // Salva o estado
+  
   var estado = getEstado();
   estado[idMarcado] = {
     quem: quem === 'pai' ? 'Pai 👨' : 'Mãe 👩',
@@ -303,24 +299,22 @@ function confirmarAdm(quem, ev){
     remedio: nomeMarcado
   };
   salvarEstado(estado);
-
-  // Busca regras do remédio
+  
   var remedioConfig = null;
   ROTINA_BASE.forEach(b => { if(b.itens) b.itens.forEach(i => { if(i.id === idMarcado) remedioConfig = i; }) });
 
-  // Verifica se precisa de Ajuste Inteligente
   if (remedioConfig && remedioConfig.recalculavel) {
     var atraso = calcularAtrasoMinutos(horaPrevista, horaReal);
     if (atraso > remedioConfig.limite) {
       var novaHora = calcularNovaSugestao(horaReal, atraso);
       ajustePendente = { id: idMarcado, nome: nomeMarcado, novaHora: novaHora, dataAmanha: dataKey(1) };
-
+      
       document.getElementById('textoAjuste').innerHTML = 
         'O <b>'+nomeMarcado+'</b> atrasou '+(Math.floor(atraso/60))+'h'+(atraso%60)+'m.<br><br>'+
         'Para manter o ciclo seguro, deseja ajustar a dose de <b>amanhã</b> para as <b>'+novaHora+'</b>?';
-
+      
       document.getElementById('modalAjuste').classList.add('show');
-
+      
       itemAtual = null;
       return false;
     }
@@ -363,7 +357,7 @@ function confirmarReset(){
   }
 }
 
-// ===== GOOGLE SHEETS (PREPARADO) =====
+// ===== GOOGLE SHEETS (CORRIGIDO) =====
 function sincronizarSheets(estado) {
   var syncEl = document.getElementById('syncStatus');
   if (!syncEl) return;
@@ -372,22 +366,24 @@ function sincronizarSheets(estado) {
     return;
   }
   syncEl.textContent = '⏳ Salvando...';
-
+  
   var linhas = Object.keys(estado).map(function(id) {
     return { data: dataKey(), remedio: estado[id].remedio, horario: estado[id].hora, quem: estado[id].quem };
   });
-
+  
+  // O segredo para não dar erro de CORS: text/plain + no-cors
   fetch(SCRIPT_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ data: dataKey(), itens: linhas })
-})
-.then(res => console.log("Enviado com sucesso"))
-.catch(err => console.error("Erro:", err));
-.then(function() {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify({ data: dataKey(), itens: linhas })
+  }).then(function() {
     syncEl.textContent = '✅ Sincronizado online';
-  }).catch(function() {
-    syncEl.textContent = '📱 Salvo local';
+  }).catch(function(err) {
+    console.error(err);
+    syncEl.textContent = '⚠️ Erro ao sincronizar';
   });
 }
 
