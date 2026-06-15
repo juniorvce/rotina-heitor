@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Rotina do Heitor V3</title>
+<title>Rotina do Heitor V4</title>
 <meta name="theme-color" content="#1d4ed8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -11,9 +11,12 @@
   header { background: linear-gradient(135deg,#1d4ed8,#7c3aed); color:#fff; padding:18px 20px 14px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,.2); position:sticky; top:0; z-index:100; }
   header h1 { font-size:22px; font-weight:700; }
   header p { font-size:12px; opacity:.85; margin-top:3px; }
-  .data-bar { background:#fff; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#555; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; gap:6px; }
-  .data-bar span { font-weight:600; color:#1d4ed8; }
-  .sync-status { font-size:11px; padding:3px 8px; border-radius:99px; background:#dcfce7; color:#166534; font-weight:600; }
+  .data-bar { background:#fff; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; font-size:14px; color:#555; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; gap:6px; }
+  .date-nav { display:flex; align-items:center; gap:12px; font-weight:700; color:#1d4ed8; }
+  .btn-nav { background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; width:32px; height:32px; border-radius:8px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .btn-nav:active { background:#dbeafe; }
+  .sync-status { font-size:11px; padding:4px 8px; border-radius:99px; background:#dcfce7; color:#166534; font-weight:600; display:flex; align-items:center; gap:4px; }
+  .sync-status.loading { background:#fef9c3; color:#854d0e; }
   .container { padding:14px; max-width:480px; margin:0 auto; }
   .block { background:#fff; border-radius:16px; margin-bottom:14px; box-shadow:0 2px 10px rgba(0,0,0,.08); overflow:hidden; }
   .block-header { padding:12px 16px; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; }
@@ -31,7 +34,7 @@
   .item-name { font-size:15px; font-weight:600; color:#111827; display:flex; align-items:center; gap:6px; }
   .item.done .item-name { text-decoration:line-through; color:#9ca3af; }
   .item-sub { font-size:11px; color:#6b7280; margin-top:2px; }
-  .item-done-info { font-size:10px; color:#16a34a; margin-top:3px; font-weight:600; }
+  .item-done-info { font-size:11px; color:#16a34a; margin-top:4px; font-weight:700; }
   .tag-ajuste { background:#fef08a; color:#854d0e; font-size:10px; padding:2px 6px; border-radius:4px; text-decoration:none !important; display:inline-block; }
   .check-btn { width:46px; height:46px; border-radius:50%; border:2.5px solid #d1d5db; background:#fff; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#9ca3af; }
   .check-btn.checked { background:#22c55e; border-color:#22c55e; color:#fff; }
@@ -72,7 +75,7 @@
   </div>
 </div>
 
-<!-- Modal Ajuste Inteligente (V3) -->
+<!-- Modal Ajuste Inteligente -->
 <div class="modal-overlay" id="modalAjuste">
   <div class="modal">
     <h3>⚠️ Ajuste Inteligente</h3>
@@ -85,13 +88,17 @@
 </div>
 
 <header>
-  <h1>💊 Rotina do Heitor <span style="font-size:12px; background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; vertical-align:middle;">V3.0 Smart</span></h1>
+  <h1>💊 Rotina do Heitor <span style="font-size:12px; background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; vertical-align:middle;">V4.0 Sync</span></h1>
   <p>8 anos · Dr. Thiago & Dra. Lucilene</p>
 </header>
 
 <div class="data-bar">
-  <div>📅 <span id="dataHoje"></span></div>
-  <div id="syncStatus" class="sync-status">📱 Salvo neste celular</div>
+  <div class="date-nav">
+    <button class="btn-nav" onclick="mudarDia(-1)">◀</button>
+    <span id="dataHoje"></span>
+    <button class="btn-nav" onclick="mudarDia(1)">▶</button>
+  </div>
+  <div id="syncStatus" class="sync-status loading">🔄 Conectando...</div>
 </div>
 
 <div class="container" id="app"></div>
@@ -100,10 +107,9 @@
 // ===== CONFIGURAÇÕES =====
 var STORAGE_KEY = 'heitor_rotina_v3';
 var AJUSTES_KEY = 'heitor_ajustes_v3';
-
-// SUA URL EXATA AQUI:
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx33ZZyvOSpqkHW8jXqwv8Vp-9uee0ShdG25F6IrCHdVCk40hCkk8X2d7DjpCNArTiCWA/exec';
 
+var dataExibicao = new Date(); // Controla qual dia estamos vendo
 var itemAtual = null;
 var nomeAtual = '';
 var horaPrevistaAtual = '';
@@ -139,27 +145,29 @@ var ROTINA_BASE = [
     ]}
 ];
 
-// ===== FUNÇÕES DE TEMPO =====
-function dataHoje(){ return new Date().toLocaleDateString('pt-BR'); }
-function dataKey(offsetDias){ 
-  var d = new Date(); 
-  if(offsetDias) d.setDate(d.getDate() + offsetDias);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); 
+// ===== FUNÇÕES DE TEMPO E NAVEGAÇÃO =====
+function dataKey(d) { 
+  var dt = d || new Date();
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); 
 }
 function horaAtual(){ 
   var d = new Date(); 
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); 
 }
+function mudarDia(offset) {
+  dataExibicao.setDate(dataExibicao.getDate() + offset);
+  render();
+}
 
 // ===== ESTADO E AJUSTES =====
-function getEstado(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')[dataKey()] || {}; } 
+function getEstado(key){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')[key] || {}; } 
   catch(e){ return {}; }
 }
-function salvarEstado(estado){
+function salvarEstado(key, estado){
   try {
     var all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    all[dataKey()] = estado;
+    all[key] = estado;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   } catch(e){}
 }
@@ -176,36 +184,30 @@ function salvarAjuste(data, idRemedio, novaHora){
   } catch(e){}
 }
 
-// ===== MOTOR INTELIGENTE (V3) =====
+// ===== MOTOR INTELIGENTE =====
 function calcularAtrasoMinutos(horaPrevista, horaReal) {
-  var p = horaPrevista.split(':');
-  var r = horaReal.split(':');
-  var minP = parseInt(p[0])*60 + parseInt(p[1]);
-  var minR = parseInt(r[0])*60 + parseInt(r[1]);
-  return minR - minP;
+  var p = horaPrevista.split(':'), r = horaReal.split(':');
+  return (parseInt(r[0])*60 + parseInt(r[1])) - (parseInt(p[0])*60 + parseInt(p[1]));
 }
-
 function calcularNovaSugestao(horaReal, atraso) {
-  var r = horaReal.split(':');
-  var h = parseInt(r[0]);
-  var m = parseInt(r[1]);
-
-  if (atraso > 120) {
-    h -= 1;
-    if (h < 0) h += 24;
-  }
-
+  var r = horaReal.split(':'), h = parseInt(r[0]), m = parseInt(r[1]);
+  if (atraso > 120) { h -= 1; if (h < 0) h += 24; }
   if (h >= 13 && h < 18) { h = 18; m = 30; }
   if (h >= 22 || h < 8) { h = 9; m = 0; }
-
   return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
 }
 
 // ===== RENDERIZAÇÃO =====
 function render(){
-  document.getElementById('dataHoje').textContent = dataHoje();
-  var estado = getEstado();
-  var ajustesHoje = getAjustes()[dataKey()] || {};
+  var keyExibicao = dataKey(dataExibicao);
+  var keyHoje = dataKey(new Date());
+  
+  // Atualiza o texto da data no topo
+  var txtData = String(dataExibicao.getDate()).padStart(2,'0') + '/' + String(dataExibicao.getMonth()+1).padStart(2,'0');
+  document.getElementById('dataHoje').textContent = (keyExibicao === keyHoje) ? "Hoje, " + txtData : txtData;
+
+  var estado = getEstado(keyExibicao);
+  var ajustesHoje = getAjustes()[keyExibicao] || {};
   var app = document.getElementById('app');
   app.innerHTML = '';
 
@@ -258,11 +260,13 @@ function render(){
 // ===== CONTROLE DE MODAIS =====
 function abrirModal(id, nome, horaPrevista, ev){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  var estado = getEstado();
+  var keyExibicao = dataKey(dataExibicao);
+  var estado = getEstado(keyExibicao);
+  
   if(estado[id]){
     if(confirm('Desmarcar "'+nome+'"?')){
       delete estado[id];
-      salvarEstado(estado);
+      salvarEstado(keyExibicao, estado);
       render();
     }
     return false;
@@ -289,32 +293,33 @@ function confirmarAdm(quem, ev){
   var nomeMarcado = nomeAtual;
   var horaPrevista = horaPrevistaAtual;
   var horaReal = horaAtual();
+  var keyExibicao = dataKey(dataExibicao);
   
   fecharModal('modalQuem');
   
-  var estado = getEstado();
+  var estado = getEstado(keyExibicao);
   estado[idMarcado] = {
     quem: quem === 'pai' ? 'Pai 👨' : 'Mãe 👩',
     hora: horaReal,
     remedio: nomeMarcado
   };
-  salvarEstado(estado);
+  salvarEstado(keyExibicao, estado);
   
   var remedioConfig = null;
   ROTINA_BASE.forEach(b => { if(b.itens) b.itens.forEach(i => { if(i.id === idMarcado) remedioConfig = i; }) });
 
-  if (remedioConfig && remedioConfig.recalculavel) {
+  if (remedioConfig && remedioConfig.recalculavel && keyExibicao === dataKey(new Date())) {
     var atraso = calcularAtrasoMinutos(horaPrevista, horaReal);
     if (atraso > remedioConfig.limite) {
       var novaHora = calcularNovaSugestao(horaReal, atraso);
-      ajustePendente = { id: idMarcado, nome: nomeMarcado, novaHora: novaHora, dataAmanha: dataKey(1) };
+      var dAmanha = new Date(); dAmanha.setDate(dAmanha.getDate() + 1);
+      ajustePendente = { id: idMarcado, nome: nomeMarcado, novaHora: novaHora, dataAmanha: dataKey(dAmanha) };
       
       document.getElementById('textoAjuste').innerHTML = 
         'O <b>'+nomeMarcado+'</b> atrasou '+(Math.floor(atraso/60))+'h'+(atraso%60)+'m.<br><br>'+
         'Para manter o ciclo seguro, deseja ajustar a dose de <b>amanhã</b> para as <b>'+novaHora+'</b>?';
       
       document.getElementById('modalAjuste').classList.add('show');
-      
       itemAtual = null;
       return false;
     }
@@ -322,7 +327,7 @@ function confirmarAdm(quem, ev){
 
   itemAtual = null;
   render();
-  sincronizarSheets(estado);
+  sincronizarSheets(keyExibicao, estado);
   return false;
 }
 
@@ -335,7 +340,7 @@ function aceitarAjuste(ev) {
   fecharModal('modalAjuste');
   ajustePendente = null;
   render();
-  sincronizarSheets(getEstado());
+  sincronizarSheets(dataKey(dataExibicao), getEstado(dataKey(dataExibicao)));
 }
 
 function recusarAjuste(ev) {
@@ -343,56 +348,85 @@ function recusarAjuste(ev) {
   fecharModal('modalAjuste');
   ajustePendente = null;
   render();
-  sincronizarSheets(getEstado());
+  sincronizarSheets(dataKey(dataExibicao), getEstado(dataKey(dataExibicao)));
 }
 
-function confirmarReset(){
-  if(confirm('Reiniciar todos os medicamentos de hoje?')){
-    try {
-      var all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      delete all[dataKey()];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-    } catch(e){}
-    render();
-  }
-}
-
-// ===== GOOGLE SHEETS (CORRIGIDO) =====
-function sincronizarSheets(estado) {
+// ===== GOOGLE SHEETS (MÃO DUPLA) =====
+function sincronizarSheets(key, estado) {
   var syncEl = document.getElementById('syncStatus');
-  if (!syncEl) return;
-  if (!SCRIPT_URL || SCRIPT_URL.includes('SEU_SCRIPT_ID_AQUI')) {
-    syncEl.textContent = '📱 Salvo neste celular';
-    return;
-  }
-  syncEl.textContent = '⏳ Salvando...';
+  syncEl.className = 'sync-status loading';
+  syncEl.innerHTML = '⏳ Salvando...';
   
   var linhas = Object.keys(estado).map(function(id) {
-    return { data: dataKey(), remedio: estado[id].remedio, horario: estado[id].hora, quem: estado[id].quem };
+    return { data: key, remedio: estado[id].remedio, horario: estado[id].hora, quem: estado[id].quem };
   });
   
-  // O segredo para não dar erro de CORS: text/plain + no-cors
   fetch(SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify({ data: dataKey(), itens: linhas })
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ data: key, itens: linhas })
   }).then(function() {
-    syncEl.textContent = '✅ Sincronizado online';
+    syncEl.className = 'sync-status';
+    syncEl.innerHTML = '✅ Salvo na nuvem';
   }).catch(function(err) {
-    console.error(err);
-    syncEl.textContent = '⚠️ Erro ao sincronizar';
+    syncEl.innerHTML = '⚠️ Erro ao salvar';
   });
+}
+
+function baixarDaNuvem() {
+  var syncEl = document.getElementById('syncStatus');
+  syncEl.className = 'sync-status loading';
+  syncEl.innerHTML = '🔄 Baixando dados...';
+
+  fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(dados => {
+      var allLocal = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      
+      // Mapeia o nome do remédio para o ID interno
+      var mapNomes = {};
+      ROTINA_BASE.forEach(b => { if(b.itens) b.itens.forEach(i => mapNomes[i.nome] = i.id) });
+
+      dados.forEach(linha => {
+        // Converte data da planilha (ex: 2026-06-14 ou 14/06/2026) para YYYY-MM-DD
+        var dataISO = linha.data;
+        if (dataISO.includes('/')) {
+          var p = dataISO.split('/');
+          if (p[0].length === 2) dataISO = p[2] + '-' + p[1] + '-' + p[0];
+        } else if (dataISO.includes('T')) {
+          dataISO = dataISO.split('T')[0];
+        }
+
+        var idRemedio = mapNomes[linha.remedio];
+        if(idRemedio) {
+          if(!allLocal[dataISO]) allLocal[dataISO] = {};
+          // Atualiza o local com o que veio da nuvem
+          allLocal[dataISO][idRemedio] = {
+            quem: linha.quem,
+            hora: linha.horario,
+            remedio: linha.remedio
+          };
+        }
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allLocal));
+      syncEl.className = 'sync-status';
+      syncEl.innerHTML = '✅ Sincronizado';
+      render(); // Atualiza a tela com os dados novos
+    })
+    .catch(err => {
+      syncEl.className = 'sync-status';
+      syncEl.innerHTML = '⚠️ Usando modo offline';
+    });
 }
 
 // Inicializa
 render();
+baixarDaNuvem(); // Puxa os dados da esposa/planilha assim que abre o app!
 
 var footer = document.createElement('div');
-footer.innerHTML = '<div class="reset-bar"><button type="button" class="btn-reset" onclick="confirmarReset()">🔄 Reiniciar dia</button></div>'+
-  '<div class="footer-info">Salvo neste celular · 😴 Dorme 22h · ⏰ Acorda 09h<br>💡 Toque no círculo para marcar quem deu o remédio</div>';
+footer.innerHTML = '<div class="footer-info">Sincronizado via Google Sheets · 😴 Dorme 22h · ⏰ Acorda 09h<br>💡 Use as setas no topo para ver dias anteriores</div>';
 document.getElementById('app').appendChild(footer);
 </script>
 </body>
