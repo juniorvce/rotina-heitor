@@ -378,9 +378,13 @@ function sincronizarSheets(estado) {
   });
 
   fetch(SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: dataKey(), itens: linhas })
-  }).then(function() {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ data: dataKey(), itens: linhas })
+})
+.then(res => console.log("Enviado com sucesso"))
+.catch(err => console.error("Erro:", err));
+.then(function() {
     syncEl.textContent = '✅ Sincronizado online';
   }).catch(function() {
     syncEl.textContent = '📱 Salvo local';
