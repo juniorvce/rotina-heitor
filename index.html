@@ -13,10 +13,11 @@
   header p { font-size:12px; opacity:.85; margin-top:3px; }
   .data-bar { background:#fff; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; font-size:14px; color:#555; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; gap:6px; }
   .date-nav { display:flex; align-items:center; gap:12px; font-weight:700; color:#1d4ed8; }
-  .btn-nav { background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; width:32px; height:32px; border-radius:8px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .btn-nav { background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; width:34px; height:34px; border-radius:8px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
   .btn-nav:active { background:#dbeafe; }
-  .sync-status { font-size:11px; padding:4px 8px; border-radius:99px; background:#dcfce7; color:#166534; font-weight:600; display:flex; align-items:center; gap:4px; }
+  .sync-status { font-size:11px; padding:4px 8px; border-radius:99px; background:#dcfce7; color:#166534; font-weight:600; cursor:pointer; }
   .sync-status.loading { background:#fef9c3; color:#854d0e; }
+  .sync-status.erro { background:#fee2e2; color:#991b1b; }
   .container { padding:14px; max-width:480px; margin:0 auto; }
   .block { background:#fff; border-radius:16px; margin-bottom:14px; box-shadow:0 2px 10px rgba(0,0,0,.08); overflow:hidden; }
   .block-header { padding:12px 16px; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; }
@@ -31,7 +32,7 @@
   .item { display:flex; align-items:center; padding:12px 16px; border-top:1px solid #f3f4f6; gap:12px; }
   .item.done { background:#f0fdf4; }
   .item-info { flex:1; }
-  .item-name { font-size:15px; font-weight:600; color:#111827; display:flex; align-items:center; gap:6px; }
+  .item-name { font-size:15px; font-weight:600; color:#111827; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .item.done .item-name { text-decoration:line-through; color:#9ca3af; }
   .item-sub { font-size:11px; color:#6b7280; margin-top:2px; }
   .item-done-info { font-size:11px; color:#16a34a; margin-top:4px; font-weight:700; }
@@ -41,19 +42,14 @@
   .escola-aviso { padding:14px 16px; text-align:center; font-size:13px; color:#991b1b; font-weight:600; }
   .koide-info { background:#fffbeb; border-left:4px solid #f59e0b; margin:10px 16px 4px; padding:10px 12px; border-radius:0 8px 8px 0; font-size:12px; color:#78350f; }
   .koide-info strong { display:block; margin-bottom:3px; }
-  .reset-bar { text-align:center; margin:10px 0 4px; }
-  .btn-reset { background:#f3f4f6; border:1px solid #d1d5db; color:#374151; padding:10px 24px; border-radius:99px; font-size:13px; cursor:pointer; font-weight:600; }
   .footer-info { text-align:center; font-size:11px; color:#9ca3af; margin-top:6px; padding:0 16px; line-height:1.5; }
-  
-  /* Modais */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center; padding:20px; }
   .modal-overlay.show { display:flex; }
   .modal { background:#fff; border-radius:20px; padding:24px; width:100%; max-width:340px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,.2); }
   .modal h3 { font-size:18px; margin-bottom:8px; color:#111827; }
   .modal p { font-size:13px; color:#4b5563; margin-bottom:18px; line-height:1.4; }
   .modal-btns { display:flex; flex-direction:column; gap:10px; }
-  .modal-btns button { padding:14px; border-radius:12px; border:none; font-size:15px; font-weight:700; cursor:pointer; transition:transform 0.1s; }
-  .modal-btns button:active { transform:scale(0.97); }
+  .modal-btns button { padding:14px; border-radius:12px; border:none; font-size:15px; font-weight:700; cursor:pointer; }
   .btn-pai { background:#1d4ed8; color:#fff; }
   .btn-mae { background:#db2777; color:#fff; }
   .btn-cancel { background:#f3f4f6; color:#374151; }
@@ -62,26 +58,24 @@
 </head>
 <body>
 
-<!-- Modal Quem Administrou -->
 <div class="modal-overlay" id="modalQuem">
   <div class="modal">
     <h3>Quem administrou?</h3>
-    <p id="modalRemedio">Remédio</p>
+    <p id="modalRemedio">Remedio</p>
     <div class="modal-btns">
       <button type="button" class="btn-pai" onclick="confirmarAdm('pai', event)">👨 Pai (Junior)</button>
-      <button type="button" class="btn-mae" onclick="confirmarAdm('mae', event)">👩 Mãe</button>
+      <button type="button" class="btn-mae" onclick="confirmarAdm('mae', event)">👩 Mae</button>
       <button type="button" class="btn-cancel" onclick="fecharModal('modalQuem', event)">Cancelar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Ajuste Inteligente -->
 <div class="modal-overlay" id="modalAjuste">
   <div class="modal">
     <h3>⚠️ Ajuste Inteligente</h3>
-    <p id="textoAjuste">O remédio atrasou. Deseja ajustar a dose de amanhã?</p>
+    <p id="textoAjuste">O remedio atrasou.</p>
     <div class="modal-btns">
-      <button type="button" class="btn-smart" onclick="aceitarAjuste(event)">✅ Aceitar Sugestão</button>
+      <button type="button" class="btn-smart" onclick="aceitarAjuste(event)">✅ Aceitar Sugestao</button>
       <button type="button" class="btn-cancel" onclick="recusarAjuste(event)">↩️ Manter Original</button>
     </div>
   </div>
@@ -98,336 +92,144 @@
     <span id="dataHoje"></span>
     <button class="btn-nav" onclick="mudarDia(1)">▶</button>
   </div>
-  <div id="syncStatus" class="sync-status loading">🔄 Conectando...</div>
+  <div id="syncStatus" class="sync-status loading" onclick="baixarDaNuvem()">🔄 Conectando...</div>
 </div>
 
 <div class="container" id="app"></div>
 
 <script>
-// ===== CONFIGURAÇÕES =====
 var STORAGE_KEY = 'heitor_rotina_v3';
 var AJUSTES_KEY = 'heitor_ajustes_v3';
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZU6BknjWb94OznY5tDFt5sTBP5EDaeBuarMmS6d0ue72Ej1JTuZglsnTr9mc4BQqPSQ/exec';
+// AQUI ESTÁ A SUA NOVA URL INSERIDA DIRETAMENTE NO CÓDIGO:
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfTEPhW7-cQKQDi-uhQrL5co4ZRGBbSI7i2oC10eQmPA1maM6-dLs-ix3ZlJjCqCZQtw/exec';
 
-var dataExibicao = new Date(); // Controla qual dia estamos vendo
-var itemAtual = null;
-var nomeAtual = '';
-var horaPrevistaAtual = '';
-var ajustePendente = null;
+var dataExibicao = new Date();
+var itemAtual = null, nomeAtual = '', horaPrevistaAtual = '', ajustePendente = null;
 
-// Definição base dos remédios
 var ROTINA_BASE = [
-  { grupo:'manha', classe:'b-manha', emoji:'🌅', hora:'09:00', titulo:'Manhã',
-    koide:'⚠️ Koide D — Esquema de redução: Dias 1-2: 3x/dia · Dias 3-5: 2x/dia · Dia 6+: 1x e parar',
+  { classe:'b-manha', emoji:'\u{1F305}', hora:'09:00', titulo:'Manha',
+    koide:'Koide D - Esquema de reducao: Dias 1-2: 3x/dia | Dias 3-5: 2x/dia | Dia 6+: 1x e parar',
     itens:[
-      {id:'predsim', nome:'Predsim', sub:'13 ml · Prednisolona · por 5 dias', recalculavel:true, limite:60},
-      {id:'alektos', nome:'Alektos Ped', sub:'4 ml · Bilastina · por 10 dias', recalculavel:true, limite:90},
-      {id:'koide-manha', nome:'Koide D', sub:'7,5 ml · Corticoide', recalculavel:false},
-      {id:'inal-manha', nome:'Inalação', sub:'SF 0,9% 3ml + Clenil · 1ª do dia', recalculavel:false},
-      {id:'rino-manha', nome:'Rinosoro', sub:'Lavar nariz · 1ª lavagem', recalculavel:false}
+      {id:'predsim', nome:'Predsim', sub:'13 ml - Prednisolona - por 5 dias', recalculavel:true, limite:60},
+      {id:'alektos', nome:'Alektos Ped', sub:'4 ml - Bilastina - por 10 dias', recalculavel:true, limite:90},
+      {id:'koide-manha', nome:'Koide D', sub:'7,5 ml - Corticoide', recalculavel:false},
+      {id:'inal-manha', nome:'Inalacao', sub:'SF 0,9% 3ml + Clenil - 1a do dia', recalculavel:false},
+      {id:'rino-manha', nome:'Rinosoro', sub:'Lavar nariz - 1a lavagem', recalculavel:false}
     ]},
-  { grupo:'escola', classe:'b-tarde', emoji:'🎒', hora:'12:00', titulo:'Antes da escola',
+  { classe:'b-tarde', emoji:'\u{1F392}', hora:'12:00', titulo:'Antes da escola',
     itens:[
-      {id:'brond-manha', nome:'Brondilat XPE', sub:'7,5 ml · a cada 12h · por 5 dias', recalculavel:false},
-      {id:'koide-meio', nome:'Koide D (só dias 1 e 2)', sub:'7,5 ml · apenas 2 primeiros dias', recalculavel:false}
+      {id:'brond-manha', nome:'Brondilat XPE', sub:'7,5 ml - a cada 12h - por 5 dias', recalculavel:false},
+      {id:'koide-meio', nome:'Koide D (so dias 1 e 2)', sub:'7,5 ml - apenas 2 primeiros dias', recalculavel:false}
     ]},
-  { grupo:'aviso', classe:'b-escola', emoji:'⛔', hora:'13h-18h', titulo:'Na escola', aviso:true },
-  { grupo:'tarde', classe:'b-tarde', emoji:'🌆', hora:'18:30', titulo:'Chegou da escola',
+  { classe:'b-escola', emoji:'\u26D4', hora:'13h-18h', titulo:'Na escola', aviso:true },
+  { classe:'b-tarde', emoji:'\u{1F306}', hora:'18:30', titulo:'Chegou da escola',
     itens:[
-      {id:'koide-tarde', nome:'Koide D', sub:'7,5 ml · conforme esquema', recalculavel:false},
-      {id:'inal-tarde', nome:'Inalação', sub:'SF 0,9% 3ml + Clenil · 2ª do dia', recalculavel:false}
+      {id:'koide-tarde', nome:'Koide D', sub:'7,5 ml - conforme esquema', recalculavel:false},
+      {id:'inal-tarde', nome:'Inalacao', sub:'SF 0,9% 3ml + Clenil - 2a do dia', recalculavel:false}
     ]},
-  { grupo:'noite', classe:'b-noite', emoji:'🌙', hora:'21:30', titulo:'Antes de dormir',
+  { classe:'b-noite', emoji:'\u{1F319}', hora:'21:30', titulo:'Antes de dormir',
     itens:[
-      {id:'brond-noite', nome:'Brondilat XPE', sub:'7,5 ml · 2ª dose (12h depois)', recalculavel:false},
-      {id:'rino-noite', nome:'Rinosoro', sub:'Lavar nariz · última lavagem', recalculavel:false},
-      {id:'avamys', nome:'Avamys (após lavar o nariz)', sub:'1 jato cada narina · por 60 dias', recalculavel:false}
+      {id:'brond-noite', nome:'Brondilat XPE', sub:'7,5 ml - 2a dose (12h depois)', recalculavel:false},
+      {id:'rino-noite', nome:'Rinosoro', sub:'Lavar nariz - ultima lavagem', recalculavel:false},
+      {id:'avamys', nome:'Avamys (apos lavar o nariz)', sub:'1 jato cada narina - por 60 dias', recalculavel:false}
     ]}
 ];
 
-// ===== FUNÇÕES DE TEMPO E NAVEGAÇÃO =====
-function dataKey(d) { 
-  var dt = d || new Date();
-  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); 
-}
-function horaAtual(){ 
-  var d = new Date(); 
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); 
-}
-function mudarDia(offset) {
-  dataExibicao.setDate(dataExibicao.getDate() + offset);
-  render();
-}
+function dataKey(d){ var dt=d||new Date(); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+function horaAtual(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function mudarDia(o){ dataExibicao.setDate(dataExibicao.getDate()+o); render(); }
 
-// ===== ESTADO E AJUSTES =====
-function getEstado(key){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')[key] || {}; } 
-  catch(e){ return {}; }
-}
-function salvarEstado(key, estado){
-  try {
-    var all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    all[key] = estado;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-  } catch(e){}
-}
-function getAjustes(){
-  try { return JSON.parse(localStorage.getItem(AJUSTES_KEY) || '{}'); } 
-  catch(e){ return {}; }
-}
-function salvarAjuste(data, idRemedio, novaHora){
-  try {
-    var all = getAjustes();
-    if(!all[data]) all[data] = {};
-    all[data][idRemedio] = novaHora;
-    localStorage.setItem(AJUSTES_KEY, JSON.stringify(all));
-  } catch(e){}
-}
+function getEstado(k){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')[k]||{}; }catch(e){ return {}; } }
+function salvarEstado(k,e){ try{ var a=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); a[k]=e; localStorage.setItem(STORAGE_KEY,JSON.stringify(a)); }catch(x){} }
+function getAjustes(){ try{ return JSON.parse(localStorage.getItem(AJUSTES_KEY)||'{}'); }catch(e){ return {}; } }
+function salvarAjuste(d,id,h){ try{ var a=getAjustes(); if(!a[d])a[d]={}; a[d][id]=h; localStorage.setItem(AJUSTES_KEY,JSON.stringify(a)); }catch(e){} }
 
-// ===== MOTOR INTELIGENTE =====
-function calcularAtrasoMinutos(horaPrevista, horaReal) {
-  var p = horaPrevista.split(':'), r = horaReal.split(':');
-  return (parseInt(r[0])*60 + parseInt(r[1])) - (parseInt(p[0])*60 + parseInt(p[1]));
-}
-function calcularNovaSugestao(horaReal, atraso) {
-  var r = horaReal.split(':'), h = parseInt(r[0]), m = parseInt(r[1]);
-  if (atraso > 120) { h -= 1; if (h < 0) h += 24; }
-  if (h >= 13 && h < 18) { h = 18; m = 30; }
-  if (h >= 22 || h < 8) { h = 9; m = 0; }
-  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-}
+function calcularAtrasoMinutos(p,r){ var a=p.split(':'),b=r.split(':'); return (parseInt(b[0])*60+parseInt(b[1]))-(parseInt(a[0])*60+parseInt(a[1])); }
+function calcularNovaSugestao(r,at){ var b=r.split(':'),h=parseInt(b[0]),m=parseInt(b[1]); if(at>120){h-=1;if(h<0)h+=24;} if(h>=13&&h<18){h=18;m=30;} if(h>=22||h<8){h=9;m=0;} return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
-// ===== RENDERIZAÇÃO =====
 function render(){
-  var keyExibicao = dataKey(dataExibicao);
-  var keyHoje = dataKey(new Date());
-  
-  // Atualiza o texto da data no topo
-  var txtData = String(dataExibicao.getDate()).padStart(2,'0') + '/' + String(dataExibicao.getMonth()+1).padStart(2,'0');
-  document.getElementById('dataHoje').textContent = (keyExibicao === keyHoje) ? "Hoje, " + txtData : txtData;
-
-  var estado = getEstado(keyExibicao);
-  var ajustesHoje = getAjustes()[keyExibicao] || {};
-  var app = document.getElementById('app');
-  app.innerHTML = '';
-
+  var keyEx=dataKey(dataExibicao), keyHoje=dataKey(new Date());
+  var txt=String(dataExibicao.getDate()).padStart(2,'0')+'/'+String(dataExibicao.getMonth()+1).padStart(2,'0');
+  document.getElementById('dataHoje').textContent=(keyEx===keyHoje)?'Hoje, '+txt:txt;
+  var estado=getEstado(keyEx), ajustes=getAjustes()[keyEx]||{};
+  var app=document.getElementById('app'); app.innerHTML='';
   ROTINA_BASE.forEach(function(bloco){
-    var div = document.createElement('div');
-    div.className = 'block ' + bloco.classe;
-    var html = '<div class="block-header"><span>'+bloco.emoji+'</span><span class="hora">'+bloco.hora+'</span><span>'+bloco.titulo+'</span>';
-    
+    var div=document.createElement('div'); div.className='block '+bloco.classe;
+    var html='<div class="block-header"><span>'+bloco.emoji+'</span><span class="hora">'+bloco.hora+'</span><span>'+bloco.titulo+'</span>';
     if(bloco.itens){
-      var feitos = bloco.itens.filter(function(it){ return estado[it.id]; }).length;
-      var total = bloco.itens.length;
-      var cls = feitos===total ? 'ok' : 'pend';
-      var txt = feitos===total ? '✅ Completo' : feitos+'/'+total;
-      html += '<span class="badge '+cls+'">'+txt+'</span>';
+      var feitos=bloco.itens.filter(function(it){return estado[it.id];}).length, total=bloco.itens.length;
+      html+='<span class="badge '+(feitos===total?'ok':'pend')+'">'+(feitos===total?'Completo':feitos+'/'+total)+'</span>';
     }
-    html += '</div>';
-    
-    if(bloco.aviso) html += '<div class="escola-aviso">🚫 Nenhum medicamento nesse período</div>';
-    if(bloco.koide) html += '<div class="koide-info"><strong>'+bloco.koide.split(':')[0]+':</strong>'+bloco.koide.substring(bloco.koide.indexOf(':')+1)+'</div>';
-    
+    html+='</div>';
+    if(bloco.aviso) html+='<div class="escola-aviso">Nenhum medicamento nesse periodo</div>';
+    if(bloco.koide) html+='<div class="koide-info"><strong>'+bloco.koide.split(':')[0]+':</strong>'+bloco.koide.substring(bloco.koide.indexOf(':')+1)+'</div>';
     if(bloco.itens){
       bloco.itens.forEach(function(it){
-        var dado = estado[it.id];
-        var doneCls = dado ? ' done' : '';
-        var btnCls = dado ? 'check-btn checked' : 'check-btn';
-        var btnTxt = dado ? '✓' : '○';
-        var doneInfo = dado ? '<div class="item-done-info">✅ '+dado.quem+' às '+dado.hora+'</div>' : '';
-        
-        var horaExibicao = bloco.hora;
-        var tagAjuste = '';
-        if (ajustesHoje[it.id]) {
-          horaExibicao = ajustesHoje[it.id];
-          tagAjuste = '<span class="tag-ajuste">⏰ Ajustado para '+horaExibicao+'</span>';
-        }
-
-        html += '<div class="item'+doneCls+'">'+
-          '<div class="item-info">'+
-            '<div class="item-name">'+it.nome+' '+tagAjuste+'</div>'+
-            '<div class="item-sub">'+it.sub+'</div>'+doneInfo+
-          '</div>'+
-          '<button type="button" class="'+btnCls+'" onclick="abrirModal(\''+it.id+'\',\''+it.nome.replace(/'/g,"\\'")+'\',\''+horaExibicao+'\', event)">'+btnTxt+'</button>'+
-          '</div>';
+        var dado=estado[it.id];
+        var doneCls=dado?' done':'', btnCls=dado?'check-btn checked':'check-btn', btnTxt=dado?'\u2713':'\u25CB';
+        var doneInfo=dado?'<div class="item-done-info">\u2705 '+dado.quem+' as '+dado.hora+'</div>':'';
+        var horaEx=bloco.hora, tag='';
+        if(ajustes[it.id]){ horaEx=ajustes[it.id]; tag='<span class="tag-ajuste">Ajustado: '+horaEx+'</span>'; }
+        html+='<div class="item'+doneCls+'"><div class="item-info"><div class="item-name">'+it.nome+' '+tag+'</div><div class="item-sub">'+it.sub+'</div>'+doneInfo+'</div>'+
+          '<button type="button" class="'+btnCls+'" onclick="abrirModal(\''+it.id+'\',\''+it.nome.replace(/'/g,"\\'")+'\',\''+horaEx+'\', event)">'+btnTxt+'</button></div>';
       });
     }
-    div.innerHTML = html;
-    app.appendChild(div);
+    div.innerHTML=html; app.appendChild(div);
   });
 }
 
-// ===== CONTROLE DE MODAIS =====
-function abrirModal(id, nome, horaPrevista, ev){
-  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  var keyExibicao = dataKey(dataExibicao);
-  var estado = getEstado(keyExibicao);
-  
-  if(estado[id]){
-    if(confirm('Desmarcar "'+nome+'"?')){
-      delete estado[id];
-      salvarEstado(keyExibicao, estado);
-      render();
-    }
-    return false;
-  }
-  itemAtual = id;
-  nomeAtual = nome;
-  horaPrevistaAtual = horaPrevista;
-  document.getElementById('modalRemedio').textContent = '💊 ' + nome;
+function abrirModal(id,nome,hp,ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
+  var k=dataKey(dataExibicao), e=getEstado(k);
+  if(e[id]){ if(confirm('Desmarcar "'+nome+'"?')){ delete e[id]; salvarEstado(k,e); render(); } return false; }
+  itemAtual=id; nomeAtual=nome; horaPrevistaAtual=hp;
+  document.getElementById('modalRemedio').textContent='\u{1F48A} '+nome;
   document.getElementById('modalQuem').classList.add('show');
   return false;
 }
+function fecharModal(id,ev){ if(ev){ev.preventDefault();ev.stopPropagation();} document.getElementById(id).classList.remove('show'); return false; }
 
-function fecharModal(idModal, ev){
-  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  document.getElementById(idModal).classList.remove('show');
-  return false;
-}
-
-function confirmarAdm(quem, ev){
-  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+function confirmarAdm(quem,ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
   if(!itemAtual) return false;
-  
-  var idMarcado = itemAtual;
-  var nomeMarcado = nomeAtual;
-  var horaPrevista = horaPrevistaAtual;
-  var horaReal = horaAtual();
-  var keyExibicao = dataKey(dataExibicao);
-  
+  var id=itemAtual, nome=nomeAtual, hp=horaPrevistaAtual, hr=horaAtual(), k=dataKey(dataExibicao);
   fecharModal('modalQuem');
-  
-  var estado = getEstado(keyExibicao);
-  estado[idMarcado] = {
-    quem: quem === 'pai' ? 'Pai 👨' : 'Mãe 👩',
-    hora: horaReal,
-    remedio: nomeMarcado
-  };
-  salvarEstado(keyExibicao, estado);
-  
-  var remedioConfig = null;
-  ROTINA_BASE.forEach(b => { if(b.itens) b.itens.forEach(i => { if(i.id === idMarcado) remedioConfig = i; }) });
-
-  if (remedioConfig && remedioConfig.recalculavel && keyExibicao === dataKey(new Date())) {
-    var atraso = calcularAtrasoMinutos(horaPrevista, horaReal);
-    if (atraso > remedioConfig.limite) {
-      var novaHora = calcularNovaSugestao(horaReal, atraso);
-      var dAmanha = new Date(); dAmanha.setDate(dAmanha.getDate() + 1);
-      ajustePendente = { id: idMarcado, nome: nomeMarcado, novaHora: novaHora, dataAmanha: dataKey(dAmanha) };
-      
-      document.getElementById('textoAjuste').innerHTML = 
-        'O <b>'+nomeMarcado+'</b> atrasou '+(Math.floor(atraso/60))+'h'+(atraso%60)+'m.<br><br>'+
-        'Para manter o ciclo seguro, deseja ajustar a dose de <b>amanhã</b> para as <b>'+novaHora+'</b>?';
-      
+  var e=getEstado(k);
+  e[id]={ quem: quem==='pai'?'Pai \u{1F468}':'Mae \u{1F469}', hora:hr, remedio:nome };
+  salvarEstado(k,e);
+  var cfg=null; ROTINA_BASE.forEach(function(b){ if(b.itens) b.itens.forEach(function(i){ if(i.id===id) cfg=i; }); });
+  if(cfg && cfg.recalculavel && k===dataKey(new Date())){
+    var at=calcularAtrasoMinutos(hp,hr);
+    if(at>cfg.limite){
+      var nh=calcularNovaSugestao(hr,at), da=new Date(); da.setDate(da.getDate()+1);
+      ajustePendente={ id:id, novaHora:nh, dataAmanha:dataKey(da) };
+      document.getElementById('textoAjuste').innerHTML='O <b>'+nome+'</b> atrasou '+Math.floor(at/60)+'h'+(at%60)+'m.<br><br>Ajustar a dose de <b>amanha</b> para <b>'+nh+'</b>?';
       document.getElementById('modalAjuste').classList.add('show');
-      itemAtual = null;
-      return false;
+      itemAtual=null; return false;
     }
   }
-
-  itemAtual = null;
-  render();
-  sincronizarSheets(keyExibicao, estado);
+  itemAtual=null; render(); enviarNuvem(k,e);
   return false;
 }
+function aceitarAjuste(ev){ if(ev){ev.preventDefault();ev.stopPropagation();} if(ajustePendente){ salvarAjuste(ajustePendente.dataAmanha,ajustePendente.id,ajustePendente.novaHora); alert('\u2705 Ajuste salvo para amanha!'); } fecharModal('modalAjuste'); ajustePendente=null; var k=dataKey(dataExibicao); render(); enviarNuvem(k,getEstado(k)); }
+function recusarAjuste(ev){ if(ev){ev.preventDefault();ev.stopPropagation();} fecharModal('modalAjuste'); ajustePendente=null; var k=dataKey(dataExibicao); render(); enviarNuvem(k,getEstado(k)); }
 
-function aceitarAjuste(ev) {
-  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  if(ajustePendente) {
-    salvarAjuste(ajustePendente.dataAmanha, ajustePendente.id, ajustePendente.novaHora);
-    alert('✅ Ajuste salvo para amanhã!');
-  }
-  fecharModal('modalAjuste');
-  ajustePendente = null;
-  render();
-  sincronizarSheets(dataKey(dataExibicao), getEstado(dataKey(dataExibicao)));
+function enviarNuvem(k,estado){
+  var s=document.getElementById('syncStatus'); s.className='sync-status loading'; s.innerHTML='\u23F3 Salvando...';
+  var linhas=Object.keys(estado).map(function(id){ return { data:k, remedio:estado[id].remedio, horario:estado[id].hora, quem:estado[id].quem }; });
+  fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ data:k, itens:linhas }) })
+  .then(function(){ s.className='sync-status'; s.innerHTML='\u2705 Salvo na nuvem'; })
+  .catch(function(){ s.className='sync-status erro'; s.innerHTML='\u26A0\uFE0F Erro ao salvar'; });
 }
 
-function recusarAjuste(ev) {
-  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  fecharModal('modalAjuste');
-  ajustePendente = null;
-  render();
-  sincronizarSheets(dataKey(dataExibicao), getEstado(dataKey(dataExibicao)));
-}
-
-// ===== GOOGLE SHEETS (MÃO DUPLA) =====
-function sincronizarSheets(key, estado) {
-  var syncEl = document.getElementById('syncStatus');
-  syncEl.className = 'sync-status loading';
-  syncEl.innerHTML = '⏳ Salvando...';
-  
-  var linhas = Object.keys(estado).map(function(id) {
-    return { data: key, remedio: estado[id].remedio, horario: estado[id].hora, quem: estado[id].quem };
-  });
-  
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ data: key, itens: linhas })
-  }).then(function() {
-    syncEl.className = 'sync-status';
-    syncEl.innerHTML = '✅ Salvo na nuvem';
-  }).catch(function(err) {
-    syncEl.innerHTML = '⚠️ Erro ao salvar';
-  });
-}
-
-function baixarDaNuvem() {
-  var syncEl = document.getElementById('syncStatus');
-  syncEl.className = 'sync-status loading';
-  syncEl.innerHTML = '🔄 Baixando dados...';
-
+function baixarDaNuvem(){
+  var s=document.getElementById('syncStatus'); s.className='sync-status loading'; s.innerHTML='\u{1F504} Baixando...';
   fetch(SCRIPT_URL)
-    .then(res => res.json())
-    .then(dados => {
-      var allLocal = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      
-      // Mapeia o nome do remédio para o ID interno
-      var mapNomes = {};
-      ROTINA_BASE.forEach(b => { if(b.itens) b.itens.forEach(i => mapNomes[i.nome] = i.id) });
-
-      dados.forEach(linha => {
-        // Converte data da planilha (ex: 2026-06-14 ou 14/06/2026) para YYYY-MM-DD
-        var dataISO = linha.data;
-        if (dataISO.includes('/')) {
-          var p = dataISO.split('/');
-          if (p[0].length === 2) dataISO = p[2] + '-' + p[1] + '-' + p[0];
-        } else if (dataISO.includes('T')) {
-          dataISO = dataISO.split('T')[0];
-        }
-
-        var idRemedio = mapNomes[linha.remedio];
-        if(idRemedio) {
-          if(!allLocal[dataISO]) allLocal[dataISO] = {};
-          // Atualiza o local com o que veio da nuvem
-          allLocal[dataISO][idRemedio] = {
-            quem: linha.quem,
-            hora: linha.horario,
-            remedio: linha.remedio
-          };
-        }
-      });
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(allLocal));
-      syncEl.className = 'sync-status';
-      syncEl.innerHTML = '✅ Sincronizado';
-      render(); // Atualiza a tela com os dados novos
-    })
-    .catch(err => {
-      syncEl.className = 'sync-status';
-      syncEl.innerHTML = '⚠️ Usando modo offline';
-    });
-}
-
-// Inicializa
-render();
-baixarDaNuvem(); // Puxa os dados da esposa/planilha assim que abre o app!
-
-var footer = document.createElement('div');
-footer.innerHTML = '<div class="footer-info">Sincronizado via Google Sheets · 😴 Dorme 22h · ⏰ Acorda 09h<br>💡 Use as setas no topo para ver dias anteriores</div>';
-document.getElementById('app').appendChild(footer);
-</script>
-</body>
-</html>
+  .then(function(r){ return r.json(); })
+  .then(function(dados){
+    var all=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+    var map={}; ROTINA_BASE.forEach(function(b){ if(b.itens) b.itens.forEach(function(i){ map[i.nome]=i.id; }); });
+    dados.forEach(function(linha){
+      var di=String(linha.data);
+      if(di.indexOf('/')>-1){ var p=di.split('/'); if(p[0].length===2) di=p[2]+'-'+p[1]+'-'+p[0]; }
+      else if(di.indexOf('
